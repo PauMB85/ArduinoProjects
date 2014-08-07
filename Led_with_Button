@@ -6,7 +6,7 @@
 * Company: HedaSoft                                        *
 ***********************************************************/
 
-//ditial pins
+//digital pins
 int button = 2;
 int led = 8;
 
@@ -17,7 +17,7 @@ int pushLast = 0;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
-  while(!Serial);
+  while(!Serial);              //wait for open serial monitor
   
   pinMode(button,INPUT);
   pinMode(led,OUTPUT);
@@ -31,14 +31,14 @@ void loop() {
   
   pushNow = digitalRead(button);
 
-  if(pushNow == 1 && pushLast == 0){  //if push the button and the last stat is low, the led is off
+  if(pushNow == 1 && pushLast == 0){  //if push the button and the last stat is low, the led is on
     digitalWrite(led,HIGH);           //turn on
     Serial.println("Turn ON");
     pushLast = 1;
     pushNow = 0;
   }
   
-  if(pushNow == 1 && pushLast == 1){  //if push the button and the las stat is high, the led is on 
+  if(pushNow == 1 && pushLast == 1){  //if push the button and the las stat is high, the led is off 
     digitalWrite(led,LOW);            // turn off
     Serial.println("Turn OFF");
     pushLast = 0;
