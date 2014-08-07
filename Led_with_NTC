@@ -10,7 +10,7 @@
 #include <math.h>
 
 //Digital Pin
-int led = 13; //Led
+int led = 12; //Led
 
 //Analog Pin
 int rNTC = 0; //rNTC (A0)
