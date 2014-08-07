@@ -56,11 +56,12 @@ void loop() {
   Serial.println(tC);
 
   
-  if(tC>23.0 && tC <29.0){
+  if(tC>23.0){
     digitalWrite(led,HIGH); //turn on the led if the temperature is between 2 values
   }
-  else
+  else if (tC < 21.0){
     digitalWrite(led,LOW); // turn off the led if the condition is not met
+  }
     
   delay(2000);
 }
