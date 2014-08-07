@@ -33,9 +33,9 @@ double tC = 0.0; //temperature in C
 void setup() {
 
   Serial.begin(9600);
+  while(!Serial);
   pinMode(led,OUTPUT);
   pinMode(rNTC,INPUT);
-  pinMode(button,INPUT);
 
 }
 
