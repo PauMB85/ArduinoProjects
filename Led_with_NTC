@@ -22,7 +22,7 @@ double r25 = 2800.0; //r of NTC in 25gree
 double beta = 3900.0; //constant beta in 25
 double t0 = 293.15; //temperatue in kelvin (25)
 
-//Values how calculete the RNTC
+//Values that calculete the RNTC
 double vout = 0.0;
 double R_NTC = 0.0;
 
@@ -54,7 +54,7 @@ void loop() {
   Serial.println(tK);
   Serial.print("La temperatura en C:");
   Serial.println(tC);
-  //digitalWrite(led,HIGH);
+
   
   if(tC>23.0 && tC <29.0){
     digitalWrite(led,HIGH); //turn on the led if the temperature is between 2 values
