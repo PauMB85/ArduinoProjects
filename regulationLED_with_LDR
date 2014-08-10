@@ -26,7 +26,7 @@ void loop() {
   valLDR = analogRead(LDR);
   Serial.println(valLDR); //print LDR's value
   
-  if(valLDR < 250)
+  if(valLDR < 250)  //possible you need change this value
   {
     //regulate the led in funtion of LDR's value
     lightLED = (valLDR/2)-150;
