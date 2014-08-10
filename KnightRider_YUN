@@ -24,7 +24,7 @@ int left = 0;  // save left status
 char c;
 char choose;
 
-//for sms
+//for indicate the effect on time
 int effect1 = 0;
 int effect2 = 0;
 int effect3 = 0;
