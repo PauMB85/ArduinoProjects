@@ -3,21 +3,21 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
-//Pines Ultrasonic HCSR04
+//Pines 
 #define trig  PORTD0   //es un pin de salida
 #define echo  PORTD1   //es un pin de entrada 
 #define	estadoD	PIND   //para la lectura de los pines de entrada
 #define greenLed  PORTD2  //es un pin de salida
 #define redLed  PORTD3    //es un pin de salida
 
+//Variables globales
 double r;
-boolean fin = false;
-//uint32_t result;
+double d;
 int result;
 
 void setup() {
 
-  //Inicializar los pines del sensor (trig y echo)
+  //Inicializar los pines del sensor, leds y el timer3
   Serial.begin(9600);
   while(!Serial);
   HCSR04_init();
@@ -32,13 +32,12 @@ void loop() {
   TRIGGER();
   //esperamos la respuesta del pulso enviado, echo
   r = ECHO();
-  double d;
   d=(r/58.0);
   //Calculamos la distancia que hay con el objeto detectado	
   Serial.print("La distancia es: ");
   Serial.println(d);
   _delay_ms(500);
-  //Handle Errors
+  
   if( (d > -1) & (d < 200))
   {
       //Al detectar un obstaculo significa que hay un vehiculo 
@@ -92,9 +91,10 @@ int ECHO()
   }
   
   result = TCNT3;
-  return (result>>1);//devolvemos el resultado ya dividido entre 2.
+  return (result>>1);//devolvemos el resultado del tiempo ya dividido entre 2.
 }
 
+/*funcion que inicializa los puertos de los leds*/
 void LEDS_init()
 {
   //Inicializamos los puertos PD3(led verde) y el PD2(led rojo)
@@ -107,6 +107,7 @@ void LEDS_init()
   
 }
 
+/*Funcion que inicializa el timer3*/
 void TIMER3_init()
 {
   //iniciamos el timer3 para calcular el tiempo que dura el pulso
