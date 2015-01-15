@@ -205,7 +205,6 @@ ISR(INT0_vect)
 {
   cli();//deshabilitamos interrupciones
   abrir1=true;
-  sei();
 }
 
 /*interrupcion externa 1*/
@@ -213,19 +212,16 @@ ISR(INT1_vect)
 {
   cli();
   cierra1=true;
-  sei();
 }
 /*interrupcion externa 2*/
 ISR(INT2_vect)
 {
   cli();
   abrir2=true;
-  sei();
 }
 /*interrupcion externa 3*/
 ISR(INT3_vect)
 {
   cli();
   cierra2=true;
-  sei();
 }
