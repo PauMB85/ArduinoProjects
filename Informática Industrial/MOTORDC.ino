@@ -185,19 +185,19 @@ void interrupt_Init()
 {
   
   //habilitamos interrupciones externas 0
-  //EIMSK |= (1 << INT0);
+  EIMSK |= (1 << INT0);
   //habilitamos interrupciones externas 1
   EIMSK |= (1 << INT1);
   //habilitamos interrupciones externas 2
-  //EIMSK |= (1 << INT2);
+  EIMSK |= (1 << INT2);
   //habilitamos interrupciones externas 2
-  //EIMSK |= (1 << INT3);
+  EIMSK |= (1 << INT3);
   
   //Modo de interrupcion
-  //EICRA |= (1 << ISC01) | (1 << ISC00); //habilitamos la interrupcion externa 0 con flanco de subida
+  EICRA |= (1 << ISC01) | (1 << ISC00); //habilitamos la interrupcion externa 0 con flanco de subida
   EICRA |= (1 << ISC11) | (1 << ISC10); //habilitamos interrupcion externa 1 con flanco de subida
-  //EICRA |= (1 << ISC21) | (1 << ISC20); //habilitamos interrupcion externa 2 con flanco de subida
-  //EICRA |= (1 << ISC31) | (1 << ISC30); //habilitamos interrupcion externa 3 con flanco de subida
+  EICRA |= (1 << ISC21) | (1 << ISC20); //habilitamos interrupcion externa 2 con flanco de subida
+  EICRA |= (1 << ISC31) | (1 << ISC30); //habilitamos interrupcion externa 3 con flanco de subida
 }
 
 /*interrupcion externa 0*/
