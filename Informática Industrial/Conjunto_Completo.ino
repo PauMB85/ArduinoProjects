@@ -6,10 +6,6 @@
 #include <string.h>
 #include <avr/interrupt.h>
 
-
-//Frecuencia
-#define F_CPU 8000000L
-
 /*------Pines LCD---------*/
 //Pin enable (E)
 #define E PORTB5
@@ -79,32 +75,27 @@ boolean abrir2 = false;
 boolean cierra2 = false;
 boolean izquierdo = false;
 boolean derecho = false;
+
 void setup() {
-  
   //inicializacion LCD
   inicializarPuertos();
   inicializarLCD();
   inicializarADC();
   sendDatosLCD(0x0C);
-  //sei();
   sendDatosLCD(clearLCD);
+  
   //inicializacion Sensor distancia
   HCSR04_init();
   LEDS_init();
   TIMER3_init();
+  
   //inicializamos entrada/salida parking
   PIN_init();
-  //inicializacion PWM
   PWM_init();
-  //inicializamos interrupciones externas
   interrupt_Init();
-  
- 
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  
   //indica si el parking esta disponible o no
    if( parking == 0)
    {
@@ -121,26 +112,25 @@ void loop() {
      _delay_ms(2000);
    }
    
-   // para saber si la plaza esta libre o ocupada
-   //Enviamos el pulso trigger
+  // para saber si la plaza esta libre o ocupada
+  //Enviamos el pulso trigger
   TRIGGER();
   //esperamos la respuesta del pulso enviado, echo
   r = ECHO();
-  d=(r/58.0);
-  //Calculamos la distancia que hay con el objeto detectado	
+  //Calculamos la distancia que hay con el objeto detectado
+  d=(r/58.0);	
   _delay_ms(500);
   
   if( (d > -1) & (d < 200))
   {
-      //Al detectar un obstaculo significa que hay un vehiculo 
-      //por lo tanto el led verde debe estar apagado y el led rojo encendido
-      //PORTD &= ~(1 << greenLed);
-      //PORTD |= (1 << redLed);
-     PORTB |=(1 << redLed); 
+    //Al detectar un obstaculo significa que hay un vehiculo 
+    //por lo tanto el led verde debe estar apagado y el led rojo encendido
+    //PORTD &= ~(1 << greenLed);
+    //PORTD |= (1 << redLed);
+    PORTB |=(1 << redLed); 
   }
   else
   {
-
     //Al no haber un obtaculo significa que la plaza esta libre
     //por lo tanto el led verde debe estar encendido y el led rojo apagado
     //PORTD |= (1 << greenLed);
@@ -173,7 +163,7 @@ void loop() {
   }
 }
 
-
+/* Funcion que inicializa los pines del LCD*/
 void inicializarPuertos()
 {
   //Puerto B
@@ -195,8 +185,6 @@ void inicializarPuertos()
   //Puerto E
   //Se inicializa el puerto 6(DB7)
   DDRE =  0x40;
-  //inicializamos el puerto 6 
-  //DDRE = 0x
   PORTE = 0;
 
 }
@@ -216,12 +204,9 @@ void inicializarLCD()
   sendDatosLCD(0x08); //Display on/off 00001000
   sendDatosLCD(clearLCD); //Display Clear 00000001
   sendDatosLCD(0x06); //Entry Mode Set 000001I/DS --> 00000100
-  
 }
 
-/*
-  Funcion enable
-*/
+//  Funcion enable
 void enable()
 {
   PORTB |= (1 << E);
@@ -230,10 +215,9 @@ void enable()
   _delay_ms(2);
 }
 
-/*
-  Function Set de 8 bits,
-  necesario para inicializar LCD
-*/
+
+/*  Function Set de 8 bits,
+  necesario para inicializar LCD*/
 void funtionSet8()
 {
   //RS = 0
@@ -247,10 +231,8 @@ void funtionSet8()
   enable();
 }
 
-/*
-  Function Set de 4 bits,
-  necesario para inicializar LCD
-*/
+/*  Function Set de 4 bits,
+  necesario para inicializar LCD*/
 void funtionSet4()
 {
   //RS = 0
@@ -264,10 +246,8 @@ void funtionSet4()
   enable();
 }
 
-/*
-  Funcion que se encarga de enviar los
-  comandos al LCD
-*/
+/*  Funcion que se encarga de enviar los
+  comandos al LCD*/
 void sendDatosLCD(unsigned char dato)
 {
   unsigned char dataHigh = (dato & 0xF0) >> 4;
@@ -287,10 +267,8 @@ void sendDatosLCD(unsigned char dato)
 
 }
 
-/*
-  Funcion que se encarga de imprimir
-  un caracter al LCD
-*/
+/*  Funcion que se encarga de imprimir
+  un caracter al LCD*/
 void sendCharLCD(unsigned char letra)
 {
   unsigned char dataHigh = (letra & 0xF0) >> 4;
@@ -310,10 +288,8 @@ void sendCharLCD(unsigned char letra)
 
 }
 
-/*
-  Funcion que se encarga de imprimir un
-  cadena de caracteres al LCD
-*/
+/*  Funcion que se encarga de imprimir un
+  cadena de caracteres al LCD*/
 void sendStringLCD(unsigned char *cadena)
 {
   char i = 0;
@@ -328,10 +304,8 @@ void sendStringLCD(unsigned char *cadena)
   }
 }
 
-/*
-  Funcion que se encarga de poner 0 o 1
-  en los pines correspondientes al LCD
-*/
+/*  Funcion que se encarga de poner 0 o 1
+  en los pines correspondientes al LCD*/
 void sendNibble(unsigned char nible)
 {
   //DB7
@@ -360,11 +334,9 @@ void sendNibble(unsigned char nible)
 
 } 
 
-/*
-  Funcion que se encarga de posicionar el cursor
+/*  Funcion que se encarga de posicionar el cursor
   El eje Y significa la linea
-  El eje X significa la posicion de la linea
-*/
+  El eje X significa la posicion de la linea*/
 void positionCursor(unsigned char x, unsigned char y)
 {
   unsigned char posicion;
@@ -380,9 +352,7 @@ void positionCursor(unsigned char x, unsigned char y)
   sendDatosLCD(posicion);
 }
 
-/*
-  Funcion que se encarga de desplazar el display
-*/
+//  Funcion que se encarga de desplazar el display
 void shiftDisplay(unsigned char shift)
 {
   //se desplaza la pantalla 16 posiciones
@@ -394,21 +364,22 @@ void shiftDisplay(unsigned char shift)
   }
 }
 
+/*Inicializamos el puerto ADC*/
 void inicializarADC()
 {
-  ADCSRA |= 1<<ADPS2;
-  ADMUX |= 1<<REFS0 | 1<<REFS1;
+  ADCSRA |= 1<<ADPS2;//preescaler 16
+  ADMUX |= 1<<REFS0 | 1<<REFS1; // Aref interno
   ADMUX |= (1<<MUX2)|(1<<MUX1)|(1<<MUX0);// adc canal 7
-  ADCSRA |= 1<<ADIE;
-  ADCSRA |= 1<<ADEN;
-
-  ADCSRA |= 1<<ADSC;
+  ADCSRA |= 1<<ADIE;//habilitar interrupcion,el valor se guarda en ADC(L/H)
+  ADCSRA |= 1<<ADEN;//habilitamos ADC
+  ADCSRA |= 1<<ADSC;//se haran conversiones automaticamente
 }
 
+//interrupcion ADC
 ISR(ADC_vect)
 {
-  uint8_t theLow = ADCL;
-  uint16_t theTenBitResult = ADCH<<8 | theLow;
+  uint8_t theLow = ADCL;//valor leido en el puertp adcLOW
+  uint16_t theTenBitResult = ADCH<<8 | theLow; //valor ADC high + low
   
   if((theTenBitResult > 650) && (theTenBitResult < 950))
   {
@@ -492,6 +463,7 @@ void TIMER3_init()
   TCCR3B=(1<<CS31);	//Prescaler = Fcpu/8
 }
 
+//enviamos la señal para detectar objeto
 void TRIGGER()
 {
   //Enviamos un pulso TTL
@@ -500,6 +472,7 @@ void TRIGGER()
   PORTD &= ~(1 << trig);//finalizamos el pulso.
 }
 
+//Detectamos el ancho del pulso, para saber la distancia
 int ECHO()
 {
   result = 0;
@@ -510,7 +483,7 @@ int ECHO()
   TCNT3=0x00;//Iniciamos el timer a 0
 
   //Calculamos el ancho del pulso
-  while(estadoD & (1<<echo))
+  while(estadoD & (1<<echo)) //hasta que llege una señal nivel alto
   {
      if(TCNT3 > 60000)
      {
@@ -523,6 +496,7 @@ int ECHO()
   return (result>>1);//devolvemos el resultado del tiempo ya dividido entre 2.
 }
 
+/* Inicializamos los pines de los motores y su control*/
 void PIN_init()
 {
   //Pines de salida
@@ -534,9 +508,9 @@ void PIN_init()
   DDRD |= (1 << B1n);
   DDRC |= (1 << A1n);
   DDRB |= (1 << motorOUT);
-  
 }
 
+/*configuacion del pwm*/
 void PWM_init()
 {
   //utilizaremos el timer1
@@ -557,11 +531,9 @@ void SetPWMOutput(uint8_t duty, int n)
     OCR1B=duty;
 }
 
-
 void sube(int m)
 { 
-  direccionHoraria1(m);
-  
+  direccionHoraria1(m);//gira en sentido horario
   SetPWMOutput(50,m);
   _delay_ms(2500);
   SetPWMOutput(40,m);
@@ -574,15 +546,12 @@ void sube(int m)
   _delay_ms(200);
   SetPWMOutput(5,m);
   _delay_ms(200);
-  
-  freno(m);
-
+  freno(m); //paro del motor
 }
 
 void baja(int m)
 {
- //motor gira sentido antihorario
-  direccionAntihorario(m);
+  direccionAntihorario(m); //motor gira sentido antihorario
   SetPWMOutput(50,m);
   _delay_ms(2500);
   SetPWMOutput(40,m);
@@ -595,67 +564,67 @@ void baja(int m)
   _delay_ms(200);
   SetPWMOutput(5,m);
   _delay_ms(100);
-   //Freno
-   freno(m);
+   freno(m);   //Freno
 }
 
 /*gira el motor en sentido horario*/
 void direccionHoraria1(int m)
 {
-  //motor gira sentido horario
-  /*if(m == 1)
-  {*/
-    PORTD |= (1 << A1n);
-    PORTD &= ~(1 << B1n);
-  /*}
+  if(m == 1)
+  {
+    //PORTD |= (1 << A1n);
+    //PORTD &= ~(1 << B1n);
+  }
   else
   {
-    PORTC |= (1 << A2n);
-    PORTC &= ~(1 << B2n);
-  }*/
+    PORTC |= (1 << A1n);
+    PORTD &= ~(1 << B1n);
+    //PORTC |= (1 << A2n);
+    //PORTC &= ~(1 << B2n);
+  }
 }
 
 /*gira el motor de entrada en sentido antihorario*/
 void direccionAntihorario(int m)
 {
-  //if(m == 1)
-  //{
-    PORTD &= ~(1 << A1n);
-    PORTD |= (1 << B1n);
- /* }
+  if(m == 1)
+  {
+    //PORTD &= ~(1 << A1n);
+    //PORTD |= (1 << B1n);
+  }
   else
   {
-    PORTC &= ~(1 << A2n);
-    PORTC |= (1 << B2n);
+    //PORTC &= ~(1 << A2n);
+    //PORTC |= (1 << B2n);
+    PORTC &= ~(1 << A1n);
+    PORTD |= (1 << B1n);
   }
-
-  */
 }
 
 /*funcion que frena el motor de entrada*/
 void freno(int m)
 {
-  //if(m == 1)
-  //{
-    PORTD |= (1 << A1n);
-    PORTD |= (1 << B1n);
-  /*}
+  if(m == 1)
+  {
+    //PORTD |= (1 << A1n);
+    //PORTD |= (1 << B1n);
+  }
   else
   {
-    PORTC |= (1 << A2n);
-    PORTC |= (1 << B2n);
-  }*/
-    
+    //PORTC |= (1 << A2n);
+    //PORTC |= (1 << B2n);
+    PORTC |= (1 << A1n);
+    PORTC |= (1 << B1n);
+  }
 }
 
 /*Habilitamos las interrupciones externas*/
 void interrupt_Init()
 {
-  
   //habilitamos interrupciones externas 0
   EIMSK |= (1 << INT0);
   //habilitamos interrupciones externas 1
-  //EIMSK |= (1 << INT1);
+  EIMSK |= (1 << INT1);
   //habilitamos interrupciones externas 2
   //EIMSK |= (1 << INT2);
   //habilitamos interrupciones externas 2
@@ -663,7 +632,7 @@ void interrupt_Init()
   
   //Modo de interrupcion
   EICRA |= (1 << ISC01) | (1 << ISC00); //habilitamos la interrupcion externa 0 con flanco de subida
-  //EICRA |= (1 << ISC11) | (1 << ISC10); //habilitamos interrupcion externa 1 con flanco de subida
+  EICRA |= (1 << ISC11) | (1 << ISC10); //habilitamos interrupcion externa 1 con flanco de subida
   //EICRA |= (1 << ISC21) | (1 << ISC20); //habilitamos interrupcion externa 2 con flanco de subida
   //EICRA |= (1 << ISC31) | (1 << ISC30); //habilitamos interrupcion externa 3 con flanco de subida
 }
@@ -672,16 +641,16 @@ void interrupt_Init()
 ISR(INT0_vect)
 {
   cli();//deshabilitamos interrupciones
-  abrir1=true;
-  sei();
+  //abrir1=true;
+  abrir2=true;
 }
 
 /*interrupcion externa 1*/
 ISR(INT1_vect)
 {
   cli();
-  cierra1=true;
-  sei();
+  //cierra1=true;
+  cierra2=true;
 }
 /*
 //interrupcion externa 2
@@ -689,13 +658,11 @@ ISR(INT2_vect)
 {
   cli();
   abrir2=true;
-  sei();
 }
 //interrupcion externa 3
 ISR(INT3_vect)
 {
   cli();
   cierra2=true;
-  sei();
 }
 */
