@@ -34,6 +34,18 @@
 //#define greenLed  PORTD2  //es un pin de salida
 #define redLed  PORTB7    //es un pin de salida
 /*----------------------------*/
+/*-----Pines modulo entrada/salida parking-------*/
+//motor que corresponde a la barrera de salida
+#define motorOUT PORTB6  //corresponde al pin 10
+//motor que corresponde a la barrera de entrada
+//#define motorIN PORTB5  //corresponde al pin 9
+//corresponde a los pines del pololu motor de entrada
+//#define B1n PORTD7 //corresponde al pin 6
+//#define A1n PORTD4 //corresponde al pin 4
+//#define B2n PORTC7 //corresponde al pin 13
+//#define A2n PORTC6 //corresponde al pin 5
+#define B1n PORTD6 //coresponde al pin 12
+#define A1n PORTC7 //corresponde al pin 13
 
 /*---------Comandos-------*/
 #define cursorHome         0x02 //envia el cursor en la posicion 0,0
@@ -49,16 +61,24 @@ unsigned char frase2[] = "Parking Lleno";
 unsigned char frase3[] = "Control Manual";
 unsigned char frase4[] = "Abrir Entrada";
 unsigned char frase5[] = "Cerrar Entrada";
-unsigned char BotonSelect[] = "Boton Select";
 unsigned char BotonLeft[] = "Motor salida";
 unsigned char BotonUp[] = "Subir barrera";
 unsigned char BotonDown[] = "Bajar barrera";
 unsigned char BotonRight[] = "Motor entrada";
 /*variables globales*/
+//plaza parking
 double r;
 double d;
 int result;
-int parking = 10; //supuesto numero de plazas dle parking
+//LCD
+int parking = 10;
+//entrada salida parling
+boolean abrir1 = false;
+boolean cierra1 = false;
+boolean abrir2 = false;
+boolean cierra2 = false;
+boolean izquierdo = false;
+boolean derecho = false;
 void setup() {
   
   //inicializacion LCD
@@ -72,6 +92,12 @@ void setup() {
   HCSR04_init();
   LEDS_init();
   TIMER3_init();
+  //inicializamos entrada/salida parking
+  PIN_init();
+  //inicializacion PWM
+  PWM_init();
+  //inicializamos interrupciones externas
+  interrupt_Init();
   
  
 }
@@ -120,6 +146,30 @@ void loop() {
     //PORTD |= (1 << greenLed);
     //PORTD &= ~(1 << redLed);
     PORTB &= ~(1 << redLed);
+  }
+  
+   //control del motor 1
+  if (abrir1)
+  {
+    sube(1);
+    abrir1 = false;
+   
+  }
+  if(cierra1)
+  {
+    baja(1);
+    cierra1 = false;
+  }
+  //control del motor 2
+  if(abrir2)
+  {
+    sube(2);
+    abrir2 = false;
+  }
+  if(cierra2)
+  {
+    baja(2);
+    cierra2 = false;
   }
 }
 
@@ -360,24 +410,49 @@ ISR(ADC_vect)
   uint8_t theLow = ADCL;
   uint16_t theTenBitResult = ADCH<<8 | theLow;
   
-  if((theTenBitResult < 1020)&&(theTenBitResult > 950)){
-    sendStringLCD(BotonSelect);
-  }
-  else if((theTenBitResult > 650) && (theTenBitResult < 950))
+  if((theTenBitResult > 650) && (theTenBitResult < 950))
   {
+    //motor de salida
+    sendDatosLCD(clearLCD);
     sendStringLCD(BotonLeft);
+    sendDatosLCD(line2);
+    sendStringLCD(frase3);
+    izquierdo = true;
+    derecho = false;
   }
   else if((theTenBitResult > 400) && (theTenBitResult < 500))
   {
+    //bajamos barrera
+    sendDatosLCD(clearLCD);
     sendStringLCD(BotonDown);
+    sendDatosLCD(line2);
+    sendStringLCD(frase3);
+    if (derecho)
+      cierra1 = true;
+    else
+      cierra2= true;
   }
   else if((theTenBitResult > 100) && (theTenBitResult < 200))
   {
+    //subimos barrera
+    sendDatosLCD(clearLCD);
     sendStringLCD(BotonUp);
+    sendDatosLCD(line2);
+    sendStringLCD(frase3);
+    if (izquierdo)
+      abrir2 = true;
+    else
+      abrir1 = true;
   }
   else if((theTenBitResult >= 0)&& theTenBitResult < 100)
   {
+    //motor entrada
+    sendDatosLCD(clearLCD);
     sendStringLCD(BotonRight);
+    sendDatosLCD(line2);
+    sendStringLCD(frase3);
+    derecho = true;
+    izquierdo = false;
   }
 
   ADCSRA |= 1<<ADSC;
@@ -447,3 +522,180 @@ int ECHO()
   result = TCNT3;
   return (result>>1);//devolvemos el resultado del tiempo ya dividido entre 2.
 }
+
+void PIN_init()
+{
+  //Pines de salida
+  /*DDRD |= (1 << B1n) | (1 << A1n);
+  DDRC |= (1 << B2n) | (1 << A2n);
+  DDRB |= (1 << motorIN) | (1 << motorOUT);
+  */
+  //Con la nueva reasignacion
+  DDRD |= (1 << B1n);
+  DDRC |= (1 << A1n);
+  DDRB |= (1 << motorOUT);
+  
+}
+
+void PWM_init()
+{
+  //utilizaremos el timer1
+   //Registro TCCR1A
+   //TCCR1A |= (1 << COM1A1) | (1 << COM1B1); //habilitamos los del timer a y b
+   TCCR1A |= (1 << COM1B1);
+   TCCR1A |= (WGM10); //fast pwm 8-bits
+   //Registro TCCR1B
+   TCCR1B |= (1 << WGM12);// | (1 << WGM13); // fast pwm 8-bits
+   TCCR1B |= (1 << CS10); //preescaler 1
+}
+/*PWM del motor entrada o salida, funcion de n*/
+void SetPWMOutput(uint8_t duty, int n)
+{
+  /*if(n == 1)
+    OCR1A=duty;
+  else*/
+    OCR1B=duty;
+}
+
+
+void sube(int m)
+{ 
+  direccionHoraria1(m);
+  
+  SetPWMOutput(50,m);
+  _delay_ms(2500);
+  SetPWMOutput(40,m);
+  _delay_ms(200);
+  SetPWMOutput(30,m);
+  _delay_ms(200);
+  SetPWMOutput(20,m);
+  _delay_ms(200);
+  SetPWMOutput(10,m);
+  _delay_ms(200);
+  SetPWMOutput(5,m);
+  _delay_ms(200);
+  
+  freno(m);
+
+}
+
+void baja(int m)
+{
+ //motor gira sentido antihorario
+  direccionAntihorario(m);
+  SetPWMOutput(50,m);
+  _delay_ms(2500);
+  SetPWMOutput(40,m);
+  _delay_ms(200);
+  SetPWMOutput(30,m);
+  _delay_ms(200);
+  SetPWMOutput(20,m);
+  _delay_ms(200);
+  SetPWMOutput(5,m);
+  _delay_ms(200);
+  SetPWMOutput(5,m);
+  _delay_ms(100);
+   //Freno
+   freno(m);
+}
+
+/*gira el motor en sentido horario*/
+void direccionHoraria1(int m)
+{
+  //motor gira sentido horario
+  /*if(m == 1)
+  {*/
+    PORTD |= (1 << A1n);
+    PORTD &= ~(1 << B1n);
+  /*}
+  else
+  {
+    PORTC |= (1 << A2n);
+    PORTC &= ~(1 << B2n);
+  }*/
+}
+
+/*gira el motor de entrada en sentido antihorario*/
+void direccionAntihorario(int m)
+{
+  //if(m == 1)
+  //{
+    PORTD &= ~(1 << A1n);
+    PORTD |= (1 << B1n);
+ /* }
+  else
+  {
+    PORTC &= ~(1 << A2n);
+    PORTC |= (1 << B2n);
+  }
+
+  */
+}
+
+/*funcion que frena el motor de entrada*/
+void freno(int m)
+{
+  //if(m == 1)
+  //{
+    PORTD |= (1 << A1n);
+    PORTD |= (1 << B1n);
+  /*}
+  else
+  {
+    PORTC |= (1 << A2n);
+    PORTC |= (1 << B2n);
+  }*/
+    
+}
+
+/*Habilitamos las interrupciones externas*/
+void interrupt_Init()
+{
+  
+  //habilitamos interrupciones externas 0
+  EIMSK |= (1 << INT0);
+  //habilitamos interrupciones externas 1
+  //EIMSK |= (1 << INT1);
+  //habilitamos interrupciones externas 2
+  //EIMSK |= (1 << INT2);
+  //habilitamos interrupciones externas 2
+  //EIMSK |= (1 << INT3);
+  
+  //Modo de interrupcion
+  EICRA |= (1 << ISC01) | (1 << ISC00); //habilitamos la interrupcion externa 0 con flanco de subida
+  //EICRA |= (1 << ISC11) | (1 << ISC10); //habilitamos interrupcion externa 1 con flanco de subida
+  //EICRA |= (1 << ISC21) | (1 << ISC20); //habilitamos interrupcion externa 2 con flanco de subida
+  //EICRA |= (1 << ISC31) | (1 << ISC30); //habilitamos interrupcion externa 3 con flanco de subida
+}
+
+/*interrupcion externa 0*/
+ISR(INT0_vect)
+{
+  cli();//deshabilitamos interrupciones
+  abrir1=true;
+  sei();
+}
+
+/*interrupcion externa 1*/
+ISR(INT1_vect)
+{
+  cli();
+  cierra1=true;
+  sei();
+}
+/*
+//interrupcion externa 2
+ISR(INT2_vect)
+{
+  cli();
+  abrir2=true;
+  sei();
+}
+//interrupcion externa 3
+ISR(INT3_vect)
+{
+  cli();
+  cierra2=true;
+  sei();
+}
+*/
