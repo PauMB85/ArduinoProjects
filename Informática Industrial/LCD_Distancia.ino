@@ -6,10 +6,6 @@
 #include <string.h>
 #include <avr/interrupt.h>
 
-
-//Frecuencia
-#define F_CPU 8000000L
-
 /*------Pines LCD---------*/
 //Pin enable (E)
 #define E PORTB5
