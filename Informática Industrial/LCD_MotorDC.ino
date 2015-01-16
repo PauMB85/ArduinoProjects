@@ -667,7 +667,7 @@ void interrupt_Init()
 /*interrupcion externa 0*/
 ISR(INT0_vect)
 {
-  cli();//deshabilitamos interrupciones
+
   //abrir1=true;
   abrir2=true;
 }
@@ -675,7 +675,7 @@ ISR(INT0_vect)
 /*interrupcion externa 1*/
 ISR(INT1_vect)
 {
-  cli();
+
   //cierra1=true;
   cierra2=true;
 }
@@ -683,13 +683,13 @@ ISR(INT1_vect)
 //interrupcion externa 2
 ISR(INT2_vect)
 {
-  cli();
+
   abrir2=true;
 }
 //interrupcion externa 3
 ISR(INT3_vect)
 {
-  cli();
+  
   cierra2=true;
 }
 */
